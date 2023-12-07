@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.shooter;
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.InvertType;
@@ -10,10 +10,14 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Constants.ShooterConstants;
-import frc.robot.subsystems.VisionSubsystem.VisionSubsystem;
-import frc.robot.utils.MoveAndShootController;
+import frc.robot.common.HardwareConfigConstants;
+import frc.robot.vision.VisionSubsystem;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+
+@Singleton
 public class ShooterSubsystem extends SubsystemBase {
     public static boolean atSetPoint = false;
     private static ShooterMode shooterMode;
@@ -23,11 +27,14 @@ public class ShooterSubsystem extends SubsystemBase {
     private final PIDController shooterPID;
     private final SimpleMotorFeedforward feedForward;
     private final MoveAndShootController moveAndShootController;
+    private final VisionSubsystem visionSubsystem;
     private double setPoint = 0.0;
     private double acceleration = 0.0;
-    public ShooterSubsystem(MoveAndShootController moveAndShootController) {
-        shooterLeftKraken = new WPI_TalonFX(ShooterConstants.SHOOTER_LEFT_Kraken);
-        shooterRightKraken = new WPI_TalonFX(ShooterConstants.SHOOTER_RIGHT_Kraken);
+
+    @Inject
+    public ShooterSubsystem(MoveAndShootController moveAndShootController, VisionSubsystem visionSubsystem) {
+        shooterLeftKraken = new WPI_TalonFX(HardwareConfigConstants.SHOOTER_LEFT_Kraken);
+        shooterRightKraken = new WPI_TalonFX(HardwareConfigConstants.SHOOTER_RIGHT_Kraken);
 
         shooterKraken = new MotorControllerGroup(shooterLeftKraken, shooterRightKraken);
 
@@ -59,6 +66,7 @@ public class ShooterSubsystem extends SubsystemBase {
         feedForward = new SimpleMotorFeedforward(
                 ShooterConstants.SHOOTER_KS, ShooterConstants.SHOOTER_KV, ShooterConstants.SHOOTER_KA);
         this.moveAndShootController = moveAndShootController;
+        this.visionSubsystem = visionSubsystem;
     }
 
     public static ShooterMode getShooterMode() {
@@ -76,12 +84,12 @@ public class ShooterSubsystem extends SubsystemBase {
 
         switch (shooterMode) {
             case LIMELIGHT:
-                if (VisionSubsystem.getDistance() == 0.0) {
+                if (visionSubsystem.getDistance() == 0.0) {
                     setPoint = 12;
                     shootFlywheel(setPoint);
                     break;
                 }
-                setSetPoint(2.564 * VisionSubsystem.getDistance() + 12.787 + moveAndShootController.calculateShooterSpeed());
+                setSetPoint(2.564 * visionSubsystem.getDistance() + 12.787 + moveAndShootController.calculateShooterSpeed());
                 setFlywheelVolts(
                         feedForward.calculate(setPoint, acceleration)
                                 + shooterPID.calculate(getMetersPerSecond(), setPoint));
@@ -91,7 +99,7 @@ public class ShooterSubsystem extends SubsystemBase {
                         feedForward.calculate(setPoint, acceleration)
                                 + shooterPID.calculate(getMetersPerSecond(), setPoint));
                 break;
-            case LOWGOAL:
+            case LOW_GOAL:
                 setSetPoint(10);
                 setFlywheelVolts(feedForward.calculate(setPoint, acceleration)
                         + shooterPID.calculate(getMetersPerSecond(), setPoint));
@@ -160,7 +168,7 @@ public class ShooterSubsystem extends SubsystemBase {
     public enum ShooterMode {
         LIMELIGHT,
         MANUAL,
-        LOWGOAL,
+        LOW_GOAL,
         OFF
     }
 }

@@ -8,7 +8,10 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.intake.IntakeSubsystem;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 
 /**
@@ -17,13 +20,22 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  * the package after creating this project, you must also update the build.gradle file in the
  * project.
  */
+
+
+@Singleton
 public class Robot extends TimedRobot
 {
     private Command autonomousCommand;
     
-    private RobotContainer robotContainer;
+    private final RobotContainer robotContainer;
     
-    
+
+    @Inject
+    public Robot(RobotContainer robotContainer) {
+        super();
+        this.robotContainer = robotContainer;
+    }
+
     /**
      * This method is run when the robot is first started up and should be used for any
      * initialization code.
@@ -33,7 +45,6 @@ public class Robot extends TimedRobot
     {
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
-        robotContainer = new RobotContainer();
     }
     
     
@@ -94,6 +105,8 @@ public class Robot extends TimedRobot
         {
             autonomousCommand.cancel();
         }
+
+        robotContainer.configureBindings();
     }
     
     

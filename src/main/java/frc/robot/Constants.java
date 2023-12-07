@@ -25,4 +25,5 @@ public final class Constants
     public static final int FORWARD_CHANNEL = 0;
     public static final int REVERSE_CHANNEL = 1;
     public static final int XBOX_CONTROLLER_PORT = 0;
+    public static final double MOTOR_VOLTAGE_COMP = 10;
 }

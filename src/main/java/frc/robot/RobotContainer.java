@@ -6,14 +6,17 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.Autos;
-import frc.robot.commands.arm.MoveArmCommand;
-import frc.robot.subsystems.TemplateDrivetrainSubsystem;
+import frc.robot.commands.shooter.ToggleShooterCommand;
+import frc.robot.drive.SwerveDriveSubsystem;
+import frc.robot.intake.IntakeSubsystem;
+import frc.robot.shooter.ShooterSubsystem;
+
+import javax.inject.Inject;
 
 
 /**
@@ -22,15 +25,22 @@ import frc.robot.subsystems.TemplateDrivetrainSubsystem;
  * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
  * subsystems, commands, and trigger mappings) should be declared here.
  */
-public class RobotContainer
-{
+
+public class RobotContainer {
 
     XboxController xboxController;
-
-    /** The container for the robot. Contains subsystems, OI devices, and commands. */
-    public RobotContainer()
-    {
+    SwerveDriveSubsystem swerveDriveSubsystem;
+    ShooterSubsystem shooterSubsystem;
+    IntakeSubsystem intakeSubsystem;
+    /**
+     * The container for the robot. Contains subsystems, OI devices, and commands.
+     */
+    @Inject
+    public RobotContainer(SwerveDriveSubsystem swerveDriveSubsystem, ShooterSubsystem shooterSubsystem, IntakeSubsystem intakeSubsystem) {
         xboxController = new XboxController(Constants.XBOX_CONTROLLER_PORT);
+        this.swerveDriveSubsystem = swerveDriveSubsystem;
+        this.shooterSubsystem = shooterSubsystem;
+        this.intakeSubsystem = intakeSubsystem;
         configureBindings();
     }
 
@@ -44,18 +54,20 @@ public class RobotContainer
      * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
      * joysticks}.
      */
-    private void configureBindings()
-    {
+    public void configureBindings() {
         // Uses a lambda expression to set the default command of the TemplateDrivetrainSubsystem to drive
         // based on the joystick values of the Xbox controller
-        TemplateDrivetrainSubsystem.getInstance().setDefaultCommand(
-            new RunCommand(() -> TemplateDrivetrainSubsystem.getInstance().tankDrive(xboxController.getLeftY(), xboxController.getRightY()),
-                TemplateDrivetrainSubsystem.getInstance())
-        );
+
 
         // While the A button on the Xbox controller is pressed, the arm will move up at 50% power
-        JoystickButton moveArmButton = new JoystickButton(xboxController, XboxController.Button.kA.value);
-        moveArmButton.whileTrue(new MoveArmCommand(0.5));
+        JoystickButton shooterButton = new JoystickButton(xboxController, XboxController.Button.kA.value);
+        JoystickButton intakeButton = new JoystickButton(xboxController, XboxController.Button.kB.value);
+
+        shooterButton.whileTrue(new ToggleShooterCommand(0.5, shooterSubsystem));
+        intakeButton.whileTrue(new RunCommand(() -> {
+            intakeSubsystem.toggleMotor();
+        }));
+        swerveDriveSubsystem.drive(xboxController.getRightX() - xboxController.getLeftX(), xboxController.getRightY() - xboxController.getLeftY());
     }
 
     /**
@@ -63,8 +75,7 @@ public class RobotContainer
      *
      * @return the command to run in autonomous
      */
-    public Command getAutonomousCommand()
-    {
-        return Autos.driveForwardAuto();
+    public Command getAutonomousCommand() {
+        return new RunCommand(() -> swerveDriveSubsystem.drive(10, 10));
     }
 }

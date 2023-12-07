@@ -1,4 +1,4 @@
-import edu.wpi.first.gradlerio.deploy.roborio.RoboRIO
+    import edu.wpi.first.gradlerio.deploy.roborio.RoboRIO
 
 plugins {
     id "java"
@@ -50,6 +50,9 @@ wpi.java.debugJni = false
 def includeDesktopSupport = false
 
 dependencies {
+    implementation 'com.google.dagger:dagger:2.49'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.49'
+
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
 

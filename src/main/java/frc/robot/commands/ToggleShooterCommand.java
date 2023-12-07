@@ -1,8 +1,8 @@
 package frc.robot.commands.shooter;
 
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import frc.robot.subsystems.ShooterSubsystem;
-import frc.robot.subsystems.ShooterSubsystem.ShooterMode;
+import frc.robot.shooter.ShooterSubsystem;
+import frc.robot.shooter.ShooterSubsystem.ShooterMode;
 
 public class ToggleShooterCommand extends InstantCommand {
     private final ShooterMode shooterMode;
